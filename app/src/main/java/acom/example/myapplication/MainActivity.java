@@ -11,6 +11,8 @@ import acom.example.myapplication.rxjava.Observable;
 import acom.example.myapplication.rxjava.ObservableOnSubscribe;
 import acom.example.myapplication.rxjava.ObservableSource;
 import acom.example.myapplication.rxjava.Observer;
+import acom.example.myapplication.scheduler.HandlerScheduler;
+import acom.example.myapplication.scheduler.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -22,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
         Observable.create(new ObservableOnSubscribe<Object>() {
             @Override
             public void subscribe(Emitter<Object> emitter) {
+                Log.d("TAG", "subscribe: thread " + Thread.currentThread());
                 Log.d("TAG", "subscribe");
                 emitter.onNext("xxx");
                 emitter.onNext("ttt");
@@ -30,43 +33,47 @@ public class MainActivity extends AppCompatActivity {
                 emitter.onComplete();
             }
         })
-//                .map(new Function<Object, Object>() {
-//
-//                    @Override
-//                    public Object apply(Object o) {
-//                        return "处理后的" + o;
-//                    }
-//                })
-                .flatMap(new Function<Object, ObservableSource<? extends Object>>() {
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(Schedulers.mainThread())
+                .map(new Function<Object, Object>() {
+
                     @Override
-                    public ObservableSource<? extends Object> apply(Object o) {
-                        return Observable.create(new ObservableOnSubscribe<Object>() {
-                            @Override
-                            public void subscribe(Emitter<Object> emitter) {
-                                emitter.onNext("处理后的" + o);
-                            }
-                        });
+                    public Object apply(Object o) {
+                        Log.d("TAG", "apply" + Thread.currentThread());
+                        return "处理后的" + o;
                     }
                 })
+//                .flatMap(new Function<Object, ObservableSource<? extends Object>>() {
+//                    @Override
+//                    public ObservableSource<? extends Object> apply(Object o) {
+//                        return Observable.create(new ObservableOnSubscribe<Object>() {
+//                            @Override
+//                            public void subscribe(Emitter<Object> emitter) {
+//                                emitter.onNext("处理后的" + o);
+//                            }
+//                        });
+//                    }
+//                })
                 .subscribe(new Observer() {
             @Override
             public void onSubscribe() {
-                Log.d("TAG", "onSubscribe...");
+                Log.d("TAG", "onSubscribe..." + Thread.currentThread());
             }
 
             @Override
             public void onNext(Object o) {
-                Log.d("TAG", "onNext " + o );
+                Log.d("TAG", "onNext" + Thread.currentThread() + o);
             }
 
             @Override
             public void onComplete() {
-                Log.d("TAG", "onComplete");
+                Log.d("TAG", "onComplete" + Thread.currentThread());
             }
 
             @Override
             public void onError(Throwable throwable) {
-                Log.d("TAG", "onError " + throwable );
+                Log.d("TAG", "onError" + Thread.currentThread() + throwable);
+
             }
         });
     }

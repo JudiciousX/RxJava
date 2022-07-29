@@ -1,10 +1,12 @@
 package acom.example.myapplication.rxjava;
 
-import acom.example.myapplication.R;
+import acom.example.myapplication.ObservableOn.ObservableObserveOn;
+import acom.example.myapplication.SubscribeOn.ObservableSubscribeOn;
 import acom.example.myapplication.flatMap.ObservableFlatMap;
 import acom.example.myapplication.map.Function;
 import acom.example.myapplication.map.ObservableMap;
-import acom.example.myapplication.rxjava2.ObservableCreate;
+import acom.example.myapplication.Create.ObservableCreate;
+import acom.example.myapplication.scheduler.Scheduler;
 
 /**
  * 被观察者核心抽象类
@@ -33,5 +35,13 @@ public abstract class Observable<T> implements ObservableSource<T> {
 
     public <R> ObservableFlatMap<T, R> flatMap(Function<Object, ObservableSource<?>> function) {
         return new ObservableFlatMap<T, R>(this, function);
+    }
+
+    public ObservableSubscribeOn<T> subscribeOn(Scheduler scheduler) {
+        return new ObservableSubscribeOn<T>(this, scheduler);
+    }
+
+    public ObservableObserveOn<T> observeOn(Scheduler scheduler) {
+        return new ObservableObserveOn<>(this, scheduler);
     }
 }
